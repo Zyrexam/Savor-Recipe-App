@@ -12,24 +12,36 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SavorRecipeApp"
         tools:targetApi="31">
+        
         <activity
-            android:name=".activiity.MainActivity"
+            android:name=".activity.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.SavorRecipeApp">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activity.MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SavorRecipeApp" />
 
+        <activity
+            android:name=".activity.RecipeList"
+            android:exported="false"
+            android:theme="@style/Theme.SavorRecipeApp" />
 
+        <activity
+            android:name=".activity.SearchByIngredientsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SavorRecipeApp" />
+
+        <activity
+            android:name=".activity.SearchByCategoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SavorRecipeApp" />
     </application>
 
 </manifest>

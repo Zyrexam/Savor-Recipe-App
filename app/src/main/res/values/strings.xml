@@ -1,3 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings.xml - Enhanced version -->
 <resources>
-    <string name="app_name">Savor-Recipe-App</string>
+    <string name="app_name">Savor</string>
+    <string name="app_title">Recipe Finder</string>
+    <string name="title">What would you like to make today?</string>
+    <string name="go">Let\'s Cook!</string>
+    <string name="ingredients">Ingredients: e.g: tomato, chicken, pasta…</string>
+    <string name="search">Search recipes: e.g: pasta bake, soup…</string>
+    <string name="tag1">WE HELP YOU</string>
+    <string name="tag2">MAKE IT DELICIOUS!</string>
+    <string name="Ingredients">Ingredients:</string>
+    <string name="redirect">Opening recipe in browser…</string>
+    <string name="welcome_back">Welcome back, Chef!</string>
+    <string name="app_subtitle">Your culinary companion</string>
 </resources>

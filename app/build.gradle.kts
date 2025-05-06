@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -37,7 +38,11 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
 }
+
 dependencies {
     // Core & Compose
     implementation(libs.androidx.core.ktx)
@@ -49,15 +54,26 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    // Coil for image loading
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     // Volley (Networking)
     implementation("com.dubsmash.volley:library:2.0.1")
 
     // Picasso (Image Loading)
     implementation(libs.picasso)
     implementation(libs.androidx.core.animation)
+    implementation(libs.litert.support.api)
+
+    //Material icons
+    implementation("androidx.compose.material:material-icons-extended:1.5.8")
+
+    // Firebase Auth
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation("com.google.firebase:firebase-analytics")
 
     // Testing
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
