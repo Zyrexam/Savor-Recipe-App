@@ -59,7 +59,7 @@ class SearchByIngredientsActivity : ComponentActivity() {
                     SearchByIngredientsScreen(
                         onBackPressed = { finish() },
                         onSearch = { ingredients, searchTerm, dietaryFilters ->
-                            val intent = Intent(this, RecipeList::class.java).apply {
+                            val intent = Intent(this, RecipeListActivity::class.java).apply {
                                 putExtra("ingredients", ingredients)
                                 putExtra("search", searchTerm)
                                 putExtra("dietary", dietaryFilters)
@@ -190,11 +190,12 @@ fun SearchByIngredientsScreen(
         )
 
         // Main content
-        Box(Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Column(
-                Modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = 80.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 // Top app bar with improved styling
                 Row(
@@ -361,7 +362,7 @@ fun SearchByIngredientsScreen(
                                     }
                                 }
 
-                                Divider(
+                                HorizontalDivider(
                                     modifier = Modifier.padding(vertical = 8.dp),
                                     color = Color(0xFFE1E5EE)
                                 )
@@ -394,7 +395,7 @@ fun SearchByIngredientsScreen(
                                 containerColor = Color.Transparent,
                                 contentColor = Color(0xFF4D6BC6),
                                 indicator = { tabPositions ->
-                                    TabRowDefaults.Indicator(
+                                    TabRowDefaults.SecondaryIndicator(
                                         modifier = Modifier
                                             .tabIndicatorOffset(tabPositions[selectedCategoryIndex])
                                             .padding(horizontal = 16.dp),
@@ -437,8 +438,8 @@ fun SearchByIngredientsScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier
-                                    .weight(1f)
                                     .fillMaxWidth()
+                                    .height(220.dp)
                             ) {
                                 items(ingredientCategories[selectedCategoryIndex].ingredients) { ingredient ->
                                     IngredientCard(
@@ -516,15 +517,16 @@ fun SearchByIngredientsScreen(
             }
             Button(
                 onClick = {
-                    val context = LocalContext.current
-                    val intent = Intent(context, RecipeList::class.java).apply {
-                        putExtra("ingredients", selectedIngredients.joinToString(","))
-                        putExtra("dietary", selectedDietaryFilters.joinToString(","))
-                    }
-                    context.startActivity(intent)
+                    onSearch(
+                        selectedIngredients.joinToString(","),
+                        searchTerm,
+                        selectedDietaryFilters.joinToString(",")
+                    )
                 },
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
+                    .padding(16.dp)
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(

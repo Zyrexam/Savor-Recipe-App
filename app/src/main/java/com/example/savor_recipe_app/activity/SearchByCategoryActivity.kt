@@ -39,6 +39,9 @@ import com.example.savor_recipe_app.ui.theme.SavorRecipeAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.asPaddingValues
 
 data class RecipeCategory(
     val name: String,
@@ -59,9 +62,10 @@ class SearchByCategoryActivity : ComponentActivity() {
                 ) {
                     SearchByCategoryScreen(
                         onBackPressed = { finish() },
-                        onSearch = { category ->
-                            val intent = Intent(this, RecipeList::class.java).apply {
+                        onSearch = { category, searchTerm ->
+                            val intent = Intent(this, RecipeListActivity::class.java).apply {
                                 putExtra("category", category)
+                                putExtra("search", searchTerm)
                             }
                             startActivity(intent)
                         }
@@ -84,7 +88,7 @@ data class CategoryItem(
 @Composable
 fun SearchByCategoryScreen(
     onBackPressed: () -> Unit,
-    onSearch: (String) -> Unit
+    onSearch: (String?, String) -> Unit
 ) {
     var searchTerm by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -163,17 +167,19 @@ fun SearchByCategoryScreen(
     }
 
     // Decorative background with improved gradient
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(
-            Brush.verticalGradient(
-                colors = listOf(
-                    Color(0xFFF8FAFF),
-                    Color(0xFFEEF2FA),
-                    Color(0xFFE6EAF6)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(WindowInsets.statusBars.asPaddingValues())
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFF8FAFF),
+                        Color(0xFFEEF2FA),
+                        Color(0xFFE6EAF6)
+                    )
                 )
             )
-        )
     ) {
         // Decorative circles with animation
         Box(
@@ -399,18 +405,14 @@ fun SearchByCategoryScreen(
                 }
             }
 
-            // Search button
             Button(
                 onClick = {
-                    val context = LocalContext.current
-                    val intent = Intent(context, RecipeList::class.java).apply {
-                        putExtra("category", selectedCategory)
-                        putExtra("search", searchTerm)
-                    }
-                    context.startActivity(intent)
+                    onSearch(selectedCategory, searchTerm)
                 },
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
+                    .padding(16.dp)
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(

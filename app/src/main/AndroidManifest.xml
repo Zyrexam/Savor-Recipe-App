@@ -42,6 +42,11 @@
             android:name=".activity.SearchByCategoryActivity"
             android:exported="false"
             android:theme="@style/Theme.SavorRecipeApp" />
+
+        <activity android:name=".activity.RecipeListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SavorRecipeApp" /> 
+
     </application>
 
 </manifest>
