@@ -68,6 +68,7 @@ class SearchByCategoryActivity : ComponentActivity() {
                                 putExtra("search", searchTerm)
                             }
                             startActivity(intent)
+                            finish()
                         }
                     )
                 }

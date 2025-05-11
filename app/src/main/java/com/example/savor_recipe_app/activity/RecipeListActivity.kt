@@ -2,6 +2,7 @@ package com.example.savor_recipe_app.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,10 +42,14 @@ import com.example.savor_recipe_app.BuildConfig
 import com.example.savor_recipe_app.model.Recipe
 import com.example.savor_recipe_app.ui.theme.SavorRecipeAppTheme
 import kotlinx.coroutines.delay
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.util.concurrent.TimeUnit
+import com.example.savor_recipe_app.util.ApiConfig
 
 class RecipeListActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +74,7 @@ class RecipeListActivity : ComponentActivity() {
                         category = category,
                         onBackPressed = { finish() },
                         onRecipeSelected = { recipeId ->
-                            val intent = Intent(this, RecipeListActivity::class.java).apply {
+                            val intent = Intent(this, RecipeDetailActivity::class.java).apply {
                                 putExtra("recipeId", recipeId)
                             }
                             startActivity(intent)
@@ -112,7 +116,7 @@ fun RecipeListScreen(
     onBackPressed: () -> Unit,
     onRecipeSelected: (Int) -> Unit
 ) {
-    val apiKey = BuildConfig.SPOONACULAR_API_KEY
+    val apiKey = ApiConfig.SPOONACULAR_API_KEY
     var recipes by remember { mutableStateOf<List<Recipe>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -134,6 +138,16 @@ fun RecipeListScreen(
         Retrofit.Builder()
             .baseUrl("https://api.spoonacular.com/")
             .addConverterFactory(GsonConverterFactory.create())
+            .client(
+                OkHttpClient.Builder()
+                    .addInterceptor(HttpLoggingInterceptor().apply {
+                        level = HttpLoggingInterceptor.Level.BODY
+                    })
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .build()
+            )
             .build()
     }
     val apiService = remember { retrofit.create(SpoonacularApiService::class.java) }
@@ -142,6 +156,8 @@ fun RecipeListScreen(
         isLoading = true
         error = null
         try {
+        
+            Log.d("API_DEBUG", "API Key: ${BuildConfig.SPOONACULAR_API_KEY}")
             val query = when {
                 searchTerm.isNotEmpty() -> searchTerm
                 category.isNotEmpty() -> category
@@ -157,6 +173,7 @@ fun RecipeListScreen(
                 category == "vegan" -> "vegan"
                 else -> ""
             }
+            Log.d("API_DEBUG", "Making request with params: query=$query, type=$type, diet=$diet")
             val response = apiService.searchRecipes(
                 apiKey = apiKey,
                 query = query,
@@ -168,6 +185,7 @@ fun RecipeListScreen(
             delay(500)
             animationStarted = true
         } catch (e: Exception) {
+            Log.e("API_DEBUG", "Error fetching recipes", e)
             error = "Failed to load recipes: ${e.localizedMessage}"
         } finally {
             isLoading = false

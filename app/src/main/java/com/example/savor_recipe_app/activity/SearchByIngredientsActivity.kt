@@ -65,6 +65,7 @@ class SearchByIngredientsActivity : ComponentActivity() {
                                 putExtra("dietary", dietaryFilters)
                             }
                             startActivity(intent)
+                            finish()
                         }
                     )
                 }

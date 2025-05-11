@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -29,7 +31,7 @@
             android:theme="@style/Theme.SavorRecipeApp" />
 
         <activity
-            android:name=".activity.RecipeList"
+            android:name=".activity.RecipeListActivity"
             android:exported="false"
             android:theme="@style/Theme.SavorRecipeApp" />
 
@@ -43,9 +45,9 @@
             android:exported="false"
             android:theme="@style/Theme.SavorRecipeApp" />
 
-        <activity android:name=".activity.RecipeListActivity"
+        <activity android:name=".activity.RecipeDetailActivity"
             android:exported="false"
-            android:theme="@style/Theme.SavorRecipeApp" /> 
+            android:theme="@style/Theme.SavorRecipeApp" />
 
     </application>
 

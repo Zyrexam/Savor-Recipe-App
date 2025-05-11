@@ -16,4 +16,10 @@ interface SpoonacularApi {
         @Query("number") number: Int = 20,
         @Query("apiKey") apiKey: String
     ): RecipeSearchResponse
+
+    @GET("recipes/{id}/information")
+    suspend fun getRecipeById(
+        @retrofit2.http.Path("id") id: Int,
+        @Query("apiKey") apiKey: String
+    ): com.example.savor_recipe_app.model.Recipe
 } 

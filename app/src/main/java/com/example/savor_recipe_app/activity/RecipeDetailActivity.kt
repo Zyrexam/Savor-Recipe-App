@@ -39,6 +39,10 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import com.example.savor_recipe_app.BuildConfig
+import com.example.savor_recipe_app.util.ApiConfig
+import android.widget.Toast
+import android.content.Intent
+import android.app.Activity
 
 class RecipeDetailActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,7 +91,7 @@ data class RecipeDetail(
     val dishTypes: List<String>? = null,
     val diets: List<String>? = null,
     val healthScore: Int = 0,
-    val spoonacularScore: Int = 0,
+    val spoonacularScore: Double = 0.0,
     val analyzedInstructions: List<AnalyzedInstruction>? = null
 )
 
@@ -125,7 +129,7 @@ data class EquipmentItem(
 
 @Composable
 fun RecipeDetailScreen(recipeId: Int, onBackPressed: () -> Unit) {
-    val apiKey = BuildConfig.SPOONACULAR_API_KEY
+    val apiKey = ApiConfig.SPOONACULAR_API_KEY
 
     var recipe by remember { mutableStateOf<RecipeDetail?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -241,9 +245,10 @@ fun RecipeDetailContent(
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
+    var isFavorite by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Recipe image as background with blur
+        // Recipe image as background with less blur
         AsyncImage(
             model = ImageRequest.Builder(context)
                 .data(recipe.image)
@@ -254,10 +259,10 @@ fun RecipeDetailContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
-                .blur(8.dp)
+                .blur(3.dp) // Less blur for more visibility
         )
 
-        // Gradient overlay
+        // Lighter gradient overlay
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -265,8 +270,8 @@ fun RecipeDetailContent(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0x80000000),
-                            Color(0xCC000000)
+                            Color(0x40000000), // 25% black
+                            Color(0x80000000)  // 50% black
                         )
                     )
                 )
@@ -300,22 +305,39 @@ fun RecipeDetailContent(
 
                 // Favorite button
                 IconButton(
-                    onClick = { /* Add to favorites */ },
+                    onClick = {
+                        isFavorite = !isFavorite
+                        Toast.makeText(
+                            context,
+                            if (isFavorite) "Added to favorites" else "Removed from favorites",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(Color(0x40FFFFFF))
                 ) {
                     Icon(
-                        imageVector = Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = Color.White
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Unfavorite" else "Favorite",
+                        tint = if (isFavorite) Color(0xFFE57373) else Color.White
                     )
                 }
 
                 // Share button
                 IconButton(
-                    onClick = { /* Share recipe */ },
+                    onClick = {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_SUBJECT, recipe.title)
+                            putExtra(Intent.EXTRA_TEXT, "Check out this recipe: ${recipe.title}\n\n${recipe.summary.replace(Regex("<[^>]*>"), "").take(200)}...")
+                        }
+                        context.startActivity(
+                            Intent.createChooser(shareIntent, "Share recipe via")
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    },
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)

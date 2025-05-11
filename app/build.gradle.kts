@@ -20,7 +20,7 @@ android {
         buildConfigField(
             "String",
             "SPOONACULAR_API_KEY",
-            "\"${project.findProperty("SPOONACULAR_API_KEY") ?: ""}\""
+            "\"d803a96fe59d4bcb85cf0c7d0b305a90\""
         )
     }
 
@@ -52,6 +52,11 @@ android {
 dependencies {
     // Core & Compose
     implementation(libs.androidx.core.ktx)
+    implementation("androidx.core:core:1.12.0")
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.activity:activity-ktx:1.8.2")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -59,9 +64,12 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
+    implementation("androidx.compose.runtime:runtime:1.5.4")
+    implementation("androidx.navigation:navigation-compose:2.9.0")
 
     // Coil for image loading
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.coil.compose)
 
     // Volley (Networking)
     implementation("com.dubsmash.volley:library:2.0.1")
@@ -72,11 +80,18 @@ dependencies {
     implementation(libs.litert.support.api)
 
     //Material icons
-    implementation("androidx.compose.material:material-icons-extended:1.5.8")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation(libs.material3)
+
+
 
     // Firebase Auth
+    implementation(platform("androidx.compose:compose-bom:2024.04.01"))
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
 
     //Api
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
