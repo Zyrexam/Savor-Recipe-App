@@ -29,6 +29,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import com.example.savor_recipe_app.data.FavoriteRecipe
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 
 @Composable
 fun ProfileScreen(
@@ -38,7 +43,7 @@ fun ProfileScreen(
     val user = authViewModel.currentUser.collectAsState().value
     val userRepository = remember { UserRepository() }
     val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }  // Added missing SnackbarHostState
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var userProfile by remember { mutableStateOf<UserProfile?>(null) }
     var nameField by remember { mutableStateOf(TextFieldValue("")) }
@@ -170,18 +175,33 @@ fun ProfileScreen(
             } else if (userProfile != null) {
                 // Profile photo
                 Box(contentAlignment = Alignment.Center) {
-                    AsyncImage(
-                        model = photoUrl ?: userProfile?.photoUrl,
-                        contentDescription = "Profile Photo",
+                    Box(
                         modifier = Modifier
-                            .size(96.dp)
-                            .clip(MaterialTheme.shapes.medium)
-                    )
-                    if (uploading) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                            .size(120.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE3E8F0))
+                            .clickable { imagePickerLauncher.launch("image/*") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = photoUrl ?: userProfile?.photoUrl,
+                            contentDescription = "Profile Photo",
+                            modifier = Modifier
+                                .size(96.dp)
+                                .clip(CircleShape)
+                        )
+                        if (uploading) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    userProfile?.email ?: "-",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
                 OutlinedButton(onClick = { imagePickerLauncher.launch("image/*") }) {
                     Text("Change Photo")
                 }
@@ -190,6 +210,7 @@ fun ProfileScreen(
                         Text("Remove Photo")
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = nameField,
                     onValueChange = { nameField = it },
@@ -197,8 +218,6 @@ fun ProfileScreen(
                     enabled = isEditing,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Email: ${userProfile?.email ?: "-"}")
                 Spacer(modifier = Modifier.height(8.dp))
                 Row {
                     if (isEditing) {
@@ -230,23 +249,24 @@ fun ProfileScreen(
                 if (favoriteRecipeDetails.isEmpty()) {
                     Text("No favorites yet.")
                 } else {
-                    LazyColumn(modifier = Modifier.heightIn(max = 200.dp)) {
-                        items(favoriteRecipeDetails) { recipe ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFF))
+                    ) {
+                        LazyColumn(modifier = Modifier.heightIn(max = 200.dp)) {
+                            items(favoriteRecipeDetails) { recipe ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
                                     AsyncImage(
                                         model = recipe.image,
                                         contentDescription = recipe.title,
                                         modifier = Modifier
-                                            .size(64.dp)
-                                            .padding(8.dp)
+                                            .size(48.dp)
+                                            .clip(CircleShape)
                                     )
-                                    Column(modifier = Modifier.padding(8.dp)) {
+                                    Column(modifier = Modifier.padding(start = 12.dp)) {
                                         Text(recipe.title, style = MaterialTheme.typography.bodyLarge)
                                         Text("${recipe.readyInMinutes} min | ${recipe.servings} servings", style = MaterialTheme.typography.bodySmall)
                                     }
