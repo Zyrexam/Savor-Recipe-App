@@ -1,8 +1,8 @@
 package com.example.savor_recipe_app.data
 
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 
@@ -14,9 +14,14 @@ data class UserProfile(
     val preferences: Map<String, Any> = mapOf()
 )
 
+data class FavoriteRecipe(
+    val id: String = "",
+    val name: String = ""
+)
+
 class UserRepository {
-    private val db: FirebaseFirestore = Firebase.firestore
-    private val usersCollection = db.collection("users")
+    private val database: FirebaseDatabase = Firebase.database
+    private val usersRef = database.getReference("users")
 
     suspend fun createUserProfile(user: FirebaseUser, profile: UserProfile) {
         try {
@@ -24,7 +29,7 @@ class UserRepository {
                 userId = user.uid,
                 email = user.email ?: profile.email
             )
-            usersCollection.document(user.uid).set(userData).await()
+            usersRef.child(user.uid).setValue(userData).await()
         } catch (e: Exception) {
             throw Exception("Failed to create user profile: ${e.message}")
         }
@@ -32,8 +37,8 @@ class UserRepository {
 
     suspend fun getUserProfile(userId: String): UserProfile? {
         return try {
-            val document = usersCollection.document(userId).get().await()
-            document.toObject(UserProfile::class.java)
+            val snapshot = usersRef.child(userId).get().await()
+            snapshot.getValue(UserProfile::class.java)
         } catch (e: Exception) {
             null
         }
@@ -41,22 +46,29 @@ class UserRepository {
 
     suspend fun updateUserProfile(userId: String, updates: Map<String, Any>) {
         try {
-            usersCollection.document(userId).update(updates).await()
+            usersRef.child(userId).updateChildren(updates).await()
         } catch (e: Exception) {
             throw Exception("Failed to update user profile: ${e.message}")
         }
     }
 
-    suspend fun addFavoriteRecipe(userId: String, recipeId: String) {
+
+    suspend fun getFavoriteRecipes(userId: String): List<FavoriteRecipe> {
+        return try {
+            val snapshot = usersRef.child(userId).child("favorites").get().await()
+            snapshot.children.mapNotNull { it.getValue(FavoriteRecipe::class.java) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun addFavoriteRecipe(userId: String, recipeId: String, recipeName: String) {
         try {
-            usersCollection.document(userId)
-                .collection("favorites")
-                .document(recipeId)
-                .set(mapOf(
-                    "timestamp" to System.currentTimeMillis(),
-                    "recipeId" to recipeId
-                ))
-                .await()
+            val favoriteData = mapOf(
+                "id" to recipeId,
+                "name" to recipeName
+            )
+            usersRef.child(userId).child("favorites").child(recipeId).setValue(favoriteData).await()
         } catch (e: Exception) {
             throw Exception("Failed to add favorite recipe: ${e.message}")
         }
@@ -64,38 +76,9 @@ class UserRepository {
 
     suspend fun removeFavoriteRecipe(userId: String, recipeId: String) {
         try {
-            usersCollection.document(userId)
-                .collection("favorites")
-                .document(recipeId)
-                .delete()
-                .await()
+            usersRef.child(userId).child("favorites").child(recipeId).removeValue().await()
         } catch (e: Exception) {
             throw Exception("Failed to remove favorite recipe: ${e.message}")
-        }
-    }
-
-    suspend fun getFavoriteRecipes(userId: String): List<String> {
-        return try {
-            val snapshot = usersCollection.document(userId)
-                .collection("favorites")
-                .get()
-                .await()
-            snapshot.documents.mapNotNull { it.getString("recipeId") }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    suspend fun isRecipeFavorite(userId: String, recipeId: String): Boolean {
-        return try {
-            val document = usersCollection.document(userId)
-                .collection("favorites")
-                .document(recipeId)
-                .get()
-                .await()
-            document.exists()
-        } catch (e: Exception) {
-            false
         }
     }
 } 

@@ -13,7 +13,7 @@ import kotlinx.coroutines.tasks.await
 
 class AuthViewModel : ViewModel() {
     private val auth: FirebaseAuth = Firebase.auth
-    
+
     private val _currentUser = MutableStateFlow<FirebaseUser?>(auth.currentUser)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser
 
@@ -30,8 +30,12 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _authState.value = AuthState.Loading
-                auth.signInWithEmailAndPassword(email, password).await()
-                _authState.value = AuthState.Success
+                val result = auth.signInWithEmailAndPassword(email, password).await()
+                result.user?.let { user ->
+                    _authState.value = AuthState.Success(user)
+                } ?: run {
+                    _authState.value = AuthState.Error("Failed to sign in")
+                }
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Authentication failed")
             }
@@ -42,10 +46,14 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _authState.value = AuthState.Loading
-                auth.createUserWithEmailAndPassword(email, password).await()
-                _authState.value = AuthState.Success
+                val result = auth.createUserWithEmailAndPassword(email, password).await()
+                result.user?.let { user ->
+                    _authState.value = AuthState.Success(user)
+                } ?: run {
+                    _authState.value = AuthState.Error("Failed to create user")
+                }
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Registration failed")
+                _authState.value = AuthState.Error(e.message ?: "Authentication failed")
             }
         }
     }
@@ -60,9 +68,9 @@ class AuthViewModel : ViewModel() {
             try {
                 _authState.value = AuthState.Loading
                 auth.sendPasswordResetEmail(email).await()
-                _authState.value = AuthState.Success
+                _authState.value = AuthState.PasswordReset
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Password reset failed")
+                _authState.value = AuthState.Error(e.message ?: "Failed to send reset email")
             }
         }
     }
@@ -71,6 +79,7 @@ class AuthViewModel : ViewModel() {
 sealed class AuthState {
     object Initial : AuthState()
     object Loading : AuthState()
-    object Success : AuthState()
+    object PasswordReset : AuthState()
+    data class Success(val user: FirebaseUser) : AuthState()
     data class Error(val message: String) : AuthState()
-} 
+}

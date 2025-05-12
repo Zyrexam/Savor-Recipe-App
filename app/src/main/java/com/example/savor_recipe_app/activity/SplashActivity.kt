@@ -3,6 +3,7 @@ package com.example.savor_recipe_app.activity
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.*
@@ -33,16 +34,45 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savor_recipe_app.R
 import com.example.savor_recipe_app.ui.theme.SavorRecipeAppTheme
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.delay
+import kotlin.jvm.java
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Check Firebase initialization
+        try {
+            if (!FirebaseApp.getApps(this).isEmpty()) {
+                Log.d("Firebase", "Firebase initialized successfully")
+                // Initialize Firebase services
+                FirebaseAuth.getInstance()
+                FirebaseDatabase.getInstance()
+                FirebaseStorage.getInstance()
+            } else {
+                Log.e("Firebase", "Firebase not initialized")
+            }
+        } catch (e: Exception) {
+            Log.e("Firebase", "Error initializing Firebase: ${e.message}")
+        }
+
         setContent {
             SavorRecipeAppTheme {
                 SplashScreen {
-                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    // Check if user is already logged in
+                    val currentUser = FirebaseAuth.getInstance().currentUser
+                    if (currentUser != null) {
+                        // User is logged in, navigate to MainActivity
+                        startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    } else {
+                        // User is not logged in, navigate to AuthActivity
+                        startActivity(Intent(this@SplashActivity, AuthActivity::class.java))
+                    }
                     finish()
                 }
             }

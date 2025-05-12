@@ -14,6 +14,8 @@ coreAnimation = "1.0.0"
 material3 = "1.3.2"
 picasso = "2.5.2"
 litertSupportApi = "1.2.0"
+firebaseCrashlyticsBuildtools = "3.0.3"
+firebaseMessagingKtx = "24.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +38,8 @@ androidx-core-animation = { group = "androidx.core", name = "core-animation", ve
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
 litert-support-api = { group = "com.google.ai.edge.litert", name = "litert-support-api", version.ref = "litertSupportApi" }
+firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -12,6 +12,7 @@ import com.example.savor_recipe_app.auth.AuthViewModel
 import com.example.savor_recipe_app.auth.AuthState
 import com.example.savor_recipe_app.data.UserRepository
 import com.example.savor_recipe_app.data.UserProfile
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignUpScreen(
@@ -21,94 +22,134 @@ fun SignUpScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    
-    val authState by authViewModel.authState.collectAsState()
+    var confirmPassword by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
     val userRepository = remember { UserRepository() }
-    
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect the authState as State<AuthState>
+    val authState by authViewModel.authState.collectAsState()
+
+    // React to changes in authState
     LaunchedEffect(authState) {
-        if (authState is AuthState.Success) {
-            // Create user profile after successful signup
-            authViewModel.currentUser.value?.let { user ->
-                val profile = UserProfile(
-                    name = name,
-                    email = email
-                )
-                userRepository.createUserProfile(user, profile)
-                onSignUpSuccess()
+        when (authState) {
+            is AuthState.Success -> {
+                val user = (authState as AuthState.Success).user
+                try {
+                    // Create user profile in Realtime Database
+                    val profile = UserProfile(
+                        userId = user.uid,
+                        email = email,
+                        name = email.split("@")[0]
+                    )
+                    userRepository.createUserProfile(user, profile)
+                    onSignUpSuccess()
+                } catch (e: Exception) {
+                    errorMessage = "Failed to create user profile: ${e.message}"
+                    snackbarHostState.showSnackbar("Failed to create user profile: ${e.message}")
+                }
+            }
+            is AuthState.Error -> {
+                errorMessage = (authState as AuthState.Error).message
+                isLoading = false
+            }
+            is AuthState.Loading -> {
+                isLoading = true
+            }
+            else -> {
+                isLoading = false
             }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Create Account",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Full Name") },
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp)
-        )
-
-        Button(
-            onClick = { authViewModel.signUp(email, password) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text("Sign Up")
-        }
-
-        TextButton(
-            onClick = onNavigateToLogin,
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("Already have an account? Login")
-        }
-
-        if (authState is AuthState.Loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-
-        if (authState is AuthState.Error) {
             Text(
-                text = (authState as AuthState.Error).message,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 16.dp)
+                text = "Create Account",
+                style = MaterialTheme.typography.headlineMedium
             )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Confirm Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            errorMessage?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    if (password != confirmPassword) {
+                        errorMessage = "Passwords do not match"
+                        return@Button
+                    }
+                    errorMessage = null
+                    scope.launch {
+                        authViewModel.signUp(email, password)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Sign Up")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(onClick = onNavigateToLogin) {
+                Text("Already have an account? Login")
+            }
         }
     }
-} 
+}

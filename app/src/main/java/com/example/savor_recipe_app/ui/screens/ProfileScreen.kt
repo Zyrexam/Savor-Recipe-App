@@ -27,6 +27,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
+import com.example.savor_recipe_app.data.FavoriteRecipe
 
 @Composable
 fun ProfileScreen(
@@ -36,11 +38,12 @@ fun ProfileScreen(
     val user = authViewModel.currentUser.collectAsState().value
     val userRepository = remember { UserRepository() }
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }  // Added missing SnackbarHostState
 
     var userProfile by remember { mutableStateOf<UserProfile?>(null) }
     var nameField by remember { mutableStateOf(TextFieldValue("")) }
     var isEditing by remember { mutableStateOf(false) }
-    var favoriteRecipes by remember { mutableStateOf(listOf<String>()) }
+    var favoriteRecipes by remember { mutableStateOf<List<FavoriteRecipe>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var favoriteRecipeDetails by remember { mutableStateOf(listOf<Recipe>()) }
@@ -113,9 +116,9 @@ fun ProfileScreen(
             val api = SpoonacularService.api
             val apiKey = ApiConfig.SPOONACULAR_API_KEY
             val details = mutableListOf<Recipe>()
-            for (id in favoriteRecipes) {
+            for (fav in favoriteRecipes) {
                 try {
-                    val recipe = api.getRecipeById(id.toInt(), apiKey)
+                    val recipe = api.getRecipeById(fav.id.toInt(), apiKey)
                     details.add(recipe)
                 } catch (_: Exception) {}
             }
@@ -239,7 +242,9 @@ fun ProfileScreen(
                                     AsyncImage(
                                         model = recipe.image,
                                         contentDescription = recipe.title,
-                                        modifier = Modifier.size(64.dp).padding(8.dp)
+                                        modifier = Modifier
+                                            .size(64.dp)
+                                            .padding(8.dp)
                                     )
                                     Column(modifier = Modifier.padding(8.dp)) {
                                         Text(recipe.title, style = MaterialTheme.typography.bodyLarge)
@@ -265,4 +270,4 @@ fun ProfileScreen(
             }
         }
     }
-} 
+}

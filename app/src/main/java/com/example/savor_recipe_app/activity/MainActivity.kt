@@ -34,6 +34,10 @@ import com.example.savor_recipe_app.R
 import com.example.savor_recipe_app.ui.theme.SavorRecipeAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,12 +65,13 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalTextApi::class)
+@OptIn(ExperimentalTextApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(onSearchByIngredients: () -> Unit, onSearchByCategory: () -> Unit) {
     var isLoading by remember { mutableStateOf(false) }
     var animationStarted by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // Animation states
     val welcomeTextAlpha by animateFloatAsState(
@@ -102,193 +107,212 @@ fun MainScreen(onSearchByIngredients: () -> Unit, onSearchByCategory: () -> Unit
         delay(500)
     }
 
-    // Main container
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Background image with blur effect for depth
-        Image(
-            painter = painterResource(id = R.drawable.image1),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(2.dp),
-            contentScale = ContentScale.Crop
-        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Savor") },
+                actions = {
+                    IconButton(onClick = {
+                        context.startActivity(Intent(context, FavoritesActivity::class.java))
+                    }) {
+                        Icon(Icons.Default.Favorite, contentDescription = "Favorites")
+                    }
+                    IconButton(onClick = {
+                        context.startActivity(Intent(context, ProfileActivity::class.java))
+                    }) {
+                        Icon(Icons.Default.Person, contentDescription = "Profile")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            // Background image with blur effect for depth
+            Image(
+                painter = painterResource(id = R.drawable.image1),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(2.dp),
+                contentScale = ContentScale.Crop
+            )
 
-        // Overlay gradient with more sophisticated colors
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xDD000000), // More opaque at top
-                            Color(0xBB000000),
-                            Color(0x99000000)  // More transparent at bottom
+            // Overlay gradient with more sophisticated colors
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xDD000000), // More opaque at top
+                                Color(0xBB000000),
+                                Color(0x99000000)  // More transparent at bottom
+                            )
                         )
                     )
-                )
-        )
+            )
 
-        // Decorative floating elements
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .offset((-20).dp, 100.dp + floatingOffset1.dp)
-                .alpha(0.15f)
-                .background(Color(0xFF4D6BC6), shape = CircleShape)
-        )
+            // Decorative floating elements
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .offset((-20).dp, 100.dp + floatingOffset1.dp)
+                    .alpha(0.15f)
+                    .background(Color(0xFF4D6BC6), shape = CircleShape)
+            )
 
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .align(Alignment.CenterEnd)
-                .offset((-20).dp, floatingOffset2.dp)
-                .alpha(0.12f)
-                .background(Color(0xFFE57373), shape = CircleShape)
-        )
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .align(Alignment.CenterEnd)
+                    .offset((-20).dp, floatingOffset2.dp)
+                    .alpha(0.12f)
+                    .background(Color(0xFFE57373), shape = CircleShape)
+            )
 
-        // Main content
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Welcome header with enhanced animation
-            AnimatedVisibility(
-                visible = animationStarted,
-                enter = fadeIn(animationSpec = tween(1500)) +
-                        slideInVertically(
-                            initialOffsetY = { -50 },
-                            animationSpec = tween(1200, easing = EaseOutQuart)
-                        ),
-                modifier = Modifier.padding(top = 80.dp)
+            // Main content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                // Welcome header with enhanced animation
+                AnimatedVisibility(
+                    visible = animationStarted,
+                    enter = fadeIn(animationSpec = tween(1500)) +
+                            slideInVertically(
+                                initialOffsetY = { -50 },
+                                animationSpec = tween(1200, easing = EaseOutQuart)
+                            ),
+                    modifier = Modifier.padding(top = 24.dp)
                 ) {
-                    // App logo/icon
-                    Image(
-                        painter = painterResource(id = R.drawable.kitchen),
-                        contentDescription = "App Logo",
-                        modifier = Modifier
-                            .size(70.dp)
-                            .clip(CircleShape)
-                            .background(Color(0x33FFFFFF))
-                            .padding(12.dp)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // App logo/icon
+                        Image(
+                            painter = painterResource(id = R.drawable.kitchen),
+                            contentDescription = "App Logo",
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .background(Color(0x33FFFFFF))
+                                .padding(12.dp)
+                        )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    // App name with enhanced styling
+                        // App name with enhanced styling
+                        Text(
+                            text = "SAVOR",
+                            fontSize = 52.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White,
+                            letterSpacing = 8.sp,
+                            modifier = Modifier
+                                .graphicsLayer {
+                                    shadowElevation = 12f
+                                    shape = RoundedCornerShape(8.dp)
+                                }
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Tagline with gradient text
+                        Text(
+                            text = "Discover Delicious Recipes",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White,
+                            modifier = Modifier.alpha(welcomeTextAlpha)
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Subtitle with more information
+                        Text(
+                            text = "Find recipes by ingredients or categories",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = Color.White.copy(alpha = 0.8f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .alpha(welcomeTextAlpha)
+                                .padding(horizontal = 16.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(60.dp))
+
+                // Search options with enhanced animation and styling
+                AnimatedVisibility(
+                    visible = animationStarted,
+                    enter = fadeIn(animationSpec = tween(1500)) +
+                            slideInVertically(
+                                initialOffsetY = { 100 },
+                                animationSpec = tween(1300, easing = EaseOutBack)
+                            )
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        // Search by ingredients button
+                        SearchOptionButton(
+                            icon = R.drawable.kitchen,
+                            title = "Search by Ingredients",
+                            description = "Find recipes using ingredients you have",
+                            onClick = {
+                                isLoading = true
+                                scope.launch {
+                                    delay(500)
+                                    onSearchByIngredients()
+                                }
+                            },
+                            isLoading = isLoading,
+                            backgroundColor = Color(0xCCFFFFFF),
+                            textColor = Color(0xFF2B3A67),
+                            iconTint = Color(0xFF4D6BC6)
+                        )
+
+                        // Search by category button
+                        SearchOptionButton(
+                            icon = R.drawable.category,
+                            title = "Search by Category",
+                            description = "Browse recipes by cuisine or meal type",
+                            onClick = {
+                                isLoading = true
+                                scope.launch {
+                                    delay(500)
+                                    onSearchByCategory()
+                                }
+                            },
+                            isLoading = isLoading,
+                            backgroundColor = Color(0xCCFFFFFF),
+                            textColor = Color(0xFF2B3A67),
+                            iconTint = Color(0xFFE57373)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Footer text
+                AnimatedVisibility(
+                    visible = animationStarted,
+                    enter = fadeIn(animationSpec = tween(2000))
+                ) {
                     Text(
-                        text = "SAVOR",
-                        fontSize = 52.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
-                        letterSpacing = 8.sp,
-                        modifier = Modifier
-                            .graphicsLayer {
-                                shadowElevation = 12f
-                                shape = RoundedCornerShape(8.dp)
-                            }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Tagline with gradient text
-                    Text(
-                        text = "Discover Delicious Recipes",
-                        fontSize = 22.sp,
+                        text = "Savor every bite",
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color.White,
-                        modifier = Modifier.alpha(welcomeTextAlpha)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Subtitle with more information
-                    Text(
-                        text = "Find recipes by ingredients or categories",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .alpha(welcomeTextAlpha)
-                            .padding(horizontal = 16.dp)
+                        color = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(60.dp))
-
-            // Search options with enhanced animation and styling
-            AnimatedVisibility(
-                visible = animationStarted,
-                enter = fadeIn(animationSpec = tween(1500)) +
-                        slideInVertically(
-                            initialOffsetY = { 100 },
-                            animationSpec = tween(1300, easing = EaseOutBack)
-                        )
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    // Search by ingredients button
-                    SearchOptionButton(
-                        icon = R.drawable.kitchen,
-                        title = "Search by Ingredients",
-                        description = "Find recipes using ingredients you have",
-                        onClick = {
-                            isLoading = true
-                            scope.launch {
-                                delay(500)
-                                onSearchByIngredients()
-                            }
-                        },
-                        isLoading = isLoading,
-                        backgroundColor = Color(0xCCFFFFFF),
-                        textColor = Color(0xFF2B3A67),
-                        iconTint = Color(0xFF4D6BC6)
-                    )
-
-                    // Search by category button
-                    SearchOptionButton(
-                        icon = R.drawable.category,
-                        title = "Search by Category",
-                        description = "Browse recipes by cuisine or meal type",
-                        onClick = {
-                            isLoading = true
-                            scope.launch {
-                                delay(500)
-                                onSearchByCategory()
-                            }
-                        },
-                        isLoading = isLoading,
-                        backgroundColor = Color(0xCCFFFFFF),
-                        textColor = Color(0xFF2B3A67),
-                        iconTint = Color(0xFFE57373)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Footer text
-            AnimatedVisibility(
-                visible = animationStarted,
-                enter = fadeIn(animationSpec = tween(2000))
-            ) {
-                Text(
-                    text = "Savor every bite",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
             }
         }
     }

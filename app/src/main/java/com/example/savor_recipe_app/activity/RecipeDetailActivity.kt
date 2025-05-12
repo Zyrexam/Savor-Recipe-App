@@ -43,6 +43,11 @@ import com.example.savor_recipe_app.util.ApiConfig
 import android.widget.Toast
 import android.content.Intent
 import android.app.Activity
+import com.example.savor_recipe_app.data.UserRepository
+import com.example.savor_recipe_app.auth.AuthViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 class RecipeDetailActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -247,6 +252,10 @@ fun RecipeDetailContent(
     val context = LocalContext.current
     var isFavorite by remember { mutableStateOf(false) }
 
+    val user = FirebaseAuth.getInstance().currentUser
+    val userRepository = remember { UserRepository() }
+    val coroutineScope = rememberCoroutineScope()
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Recipe image as background with less blur
         AsyncImage(
@@ -306,12 +315,41 @@ fun RecipeDetailContent(
                 // Favorite button
                 IconButton(
                     onClick = {
-                        isFavorite = !isFavorite
-                        Toast.makeText(
-                            context,
-                            if (isFavorite) "Added to favorites" else "Removed from favorites",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        if (user != null) {
+                            isFavorite = !isFavorite
+                            coroutineScope.launch {
+                                try {
+                                    if (isFavorite) {
+//                                        userRepository.addFavoriteRecipe(user.uid, recipe.id.toString())
+                                        userRepository.addFavoriteRecipe(user.uid, recipe.id.toString(), recipe.title)
+                                        Toast.makeText(
+                                            context,
+                                            "Added to favorites",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        userRepository.removeFavoriteRecipe(user.uid, recipe.id.toString())
+                                        Toast.makeText(
+                                            context,
+                                            "Removed from favorites",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        "Error updating favorites: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Please log in to use favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     },
                     modifier = Modifier
                         .size(40.dp)
